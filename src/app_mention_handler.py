@@ -39,8 +39,12 @@ class AppMentionHandler:
     def handle_label_whois_message(self, message: str, channel: str, timestamp: decimal):
         match = self.label_whois_regex.match(message)
         user = match.group("user")
-        text = f"{user} is {', '.join(self.aws_client.get_labels_for_user(user))}"
-        self.slack_client.reply_in_thread(text, channel, timestamp)
+        labels = self.aws_client.get_labels_for_user(user)
+        if labels:
+            text = f"{user} is {', '.join(labels)}"
+            self.slack_client.reply_in_thread(text, channel, timestamp)
+        else:
+            self.slack_client.reply_in_thread(f"{user}? Never heard of 'em", channel, timestamp)
 
     def handle_label_message(self, message: str, channel: str, timestamp: decimal):
         match = self.label_regex.match(message)
@@ -52,7 +56,10 @@ class AppMentionHandler:
         print(f"handling label message: user={user}, verb={verb}, label={label}")
 
         if verb == "is" or verb == "<<":
-            self.aws_client.put_label(user, timestamp, label)
+            self.aws_client.put_label(user, timestamp, label) or \
+                self.slack_client.reply_in_thread("I know", channel, timestamp)
         else:
-            self.aws_client.delete_label(user, label)
+            self.aws_client.delete_label(user, label) or \
+                self.slack_client.reply_in_thread("I know", channel, timestamp)
+
         self.slack_client.add_reaction("white_check_mark", channel, timestamp)

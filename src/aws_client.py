@@ -11,7 +11,7 @@ class AwsClient:
     def __init__(self):
         self.table = boto3.resource("dynamodb", region_name=self.AWS_REGION).Table(self.DYNAMO_TABLE_NAME)
 
-    def put_label(self, user: str, timestamp: decimal, label: str):
+    def put_label(self, user: str, timestamp: decimal, label: str) -> bool:
         print(f"adding label: user={user} label={label} timestamp={timestamp}")
         try:
             self.table.update_item(
@@ -19,18 +19,23 @@ class AwsClient:
                     "type": "label",
                     "target": user
                 },
-                UpdateExpression="SET labels = list_append(if_not_exists(labels, :empty), :i)",
-                ConditionExpression="NOT contains(labels, :i)",
+                UpdateExpression="SET labels = list_append(if_not_exists(labels, :empty), :label_list)",
+                ConditionExpression="NOT contains(labels, :label)",
                 ExpressionAttributeValues={
                     ":empty": [],
-                    ":i": [label]
+                    ":label_list": [label],
+                    ":label": label
                 }
             )
+            return True
         except ClientError as e:
             if e.response['Error']['Code'] == 'ConditionalCheckFailedException':
                 print("label already exists")
+                return False
+            else:
+                raise e
 
-    def delete_label(self, user: str, label: str):
+    def delete_label(self, user: str, label: str) -> bool:
         labels_for_user = self.get_labels_for_user(user)
         index = labels_for_user.index(label) if label in labels_for_user else None
 
@@ -44,20 +49,28 @@ class AwsClient:
                 },
                 UpdateExpression=query
             )
+            return True
         else:
             print(f"no label to delete: user={user}, label={label}")
+            return False
 
     def get_labels_for_user(self, user: str) -> list[str]:
-        items = self.table.get_item(
+        result = self.table.get_item(
             Key={
                 "type": "label",
                 "target": user
             }
-        )["Item"]["labels"]
-        print(f"retrieved labels for {user}: {items}")
-        return items
+        )
 
-    def get_secret(self, secret_name):
+        if result.get("Item"):
+            labels = result["Item"]["labels"]
+            print(f"retrieved labels for {user}: {labels}")
+            return labels
+        else:
+            print(f"no labels for {user}")
+            return []
+
+    def get_secret(self, secret_name: str) -> str:
         session = boto3.session.Session()
         client = session.client(service_name="secretsmanager", region_name=self.AWS_REGION)
         get_secret_value_response = client.get_secret_value(SecretId=secret_name)
