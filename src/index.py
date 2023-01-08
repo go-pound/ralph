@@ -5,11 +5,11 @@ from app_mention_handler import AppMentionHandler
 def lambda_handler(event: json, context: json):
     print(f"Received event: {event} with context {context}")
 
-    body = event['body']['event']
-    event_type = body["type"]
+    body = event['body'].get('event')
+    event_type = body["type"] if body else event['body']['type']  # url_verification events have a different structure
 
     if event_type == "url_verification":
-        return url_verification(body)
+        return url_verification(event['body'])
     elif event_type == "app_mention":
         return AppMentionHandler().respond(body)
     else:

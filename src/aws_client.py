@@ -23,17 +23,22 @@ class AwsClient:
 
     def delete_label(self, user: str, label: str):
         labels_for_user = self.get_labels_for_user(user)
-        item_to_delete = next((lbl for lbl in labels_for_user if lbl == label), None)
+        item_to_delete = next((item for item in labels_for_user if item["label"] == label), None)
 
         if item_to_delete:
             print(f"deleting label: user={user}, label={label}")
-            self.table.delete_item(item_to_delete)
+            self.table.delete_item(
+                Key={
+                    "user": item_to_delete["user"],
+                    "timestamp": item_to_delete["timestamp"]
+                }
+            )
         else:
             print(f"no label to delete: user={user}, label={label}")
 
     def get_labels_for_user(self, user: str) -> list[map]:
         items = self.table.query(
             KeyConditionExpression=Key("user").eq(user)
-        )["Item"]
+        )["Items"]
         print(f"retrieved labels for {user}: {items}")
         return items
