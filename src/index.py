@@ -1,10 +1,11 @@
 import json
+import logging
 
 from app_mention_handler import AppMentionHandler
 
 
 def lambda_handler(event: json, context: json):
-    print(f"Received event: {event} with context {context}")
+    logging.info(f"Received event: {event} with context {context}")
 
     body = json.loads(event['body']).get('event')
     event_type = body["type"] if body else event['body']['type']  # url_verification events have a different structure
@@ -18,5 +19,5 @@ def lambda_handler(event: json, context: json):
 
 
 def url_verification(body):
-    print(f"Responding to challenge: {body}")
+    logging.info(f"Responding to challenge: {body}")
     return body["challenge"]

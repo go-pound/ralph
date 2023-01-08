@@ -1,4 +1,5 @@
 import decimal
+import logging
 
 import boto3
 from botocore.exceptions import ClientError
@@ -12,7 +13,7 @@ class AwsClient:
         self.table = boto3.resource("dynamodb", region_name=self.AWS_REGION).Table(self.DYNAMO_TABLE_NAME)
 
     def put_label(self, user: str, timestamp: decimal, label: str) -> bool:
-        print(f"adding label: user={user} label={label} timestamp={timestamp}")
+        logging.info(f"adding label: user={user} label={label} timestamp={timestamp}")
         try:
             self.table.update_item(
                 Key={
@@ -30,7 +31,7 @@ class AwsClient:
             return True
         except ClientError as e:
             if e.response['Error']['Code'] == 'ConditionalCheckFailedException':
-                print("label already exists")
+                logging.info("label already exists")
                 return False
             else:
                 raise e
@@ -40,7 +41,7 @@ class AwsClient:
         index = labels_for_user.index(label) if label in labels_for_user else None
 
         if index is not None:
-            print(f"deleting label: user={user}, label={label}, index={index}")
+            logging.info(f"deleting label: user={user}, label={label}, index={index}")
             query = f"REMOVE labels[{index}]"
             self.table.update_item(
                 Key={
@@ -51,7 +52,7 @@ class AwsClient:
             )
             return True
         else:
-            print(f"no label to delete: user={user}, label={label}")
+            logging.info(f"no label to delete: user={user}, label={label}")
             return False
 
     def get_labels_for_user(self, user: str) -> list[str]:
@@ -64,10 +65,10 @@ class AwsClient:
 
         if result.get("Item"):
             labels = result["Item"]["labels"]
-            print(f"retrieved labels for {user}: {labels}")
+            logging.info(f"retrieved labels for {user}: {labels}")
             return labels
         else:
-            print(f"no labels for {user}")
+            logging.info(f"no labels for {user}")
             return []
 
     def get_secret(self, secret_name: str) -> str:

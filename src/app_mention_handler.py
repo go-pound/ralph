@@ -1,5 +1,6 @@
 import html
 import json
+import logging
 import re
 import decimal
 
@@ -30,7 +31,7 @@ class AppMentionHandler:
             elif self.label_whois_regex.match(message):
                 self.handle_label_whois_message(message, channel, timestamp)
             else:
-                print(f"Unhandled message {message}")
+                logging.info(f"Unhandled message {message}")
                 self.slack_client.add_reaction("question", channel, timestamp)
         except Exception as e:
             self.slack_client.add_reaction("x", channel, timestamp)
@@ -53,7 +54,7 @@ class AppMentionHandler:
         verb = match.group("verb")
         label = match.group("label")
 
-        print(f"handling label message: user={user}, verb={verb}, label={label}")
+        logging.info(f"handling label message: user={user}, verb={verb}, label={label}")
 
         if verb == "is" or verb == "<<":
             self.aws_client.put_label(user, timestamp, label) or \

@@ -1,5 +1,6 @@
 import decimal
 import json
+import logging
 import urllib.parse
 import urllib.request
 
@@ -34,10 +35,10 @@ class SlackClient:
 
     def post(self, url: str, payload: dict):
         body = urllib.parse.urlencode(payload).encode("utf-8")
-        print(f"Sending request to {url}: {payload}")
+        logging.info(f"Sending request to {url}: {payload}")
         request = urllib.request.Request(url, headers=self.headers(), data=body)
         response = urllib.request.urlopen(request).read()
-        print(f"Received response: {response}")
+        logging.info(f"Received response: {response}")
 
     def headers(self):
         token = self.token or json.loads(self.aws_client.get_secret(self.SLACK_TOKEN_SECRET_NAME))["token"]
