@@ -1,29 +1,45 @@
+import html
 import json
 import re
 import decimal
 
 from aws_client import AwsClient
+from slack_client import SlackClient
 
 
 class AppMentionHandler:
     label_regex = re.compile(
         "<@[A-Z0-9]+> (?P<user><@[A-Z0-9]+>) (?P<verb>is not|is|<<|>>) (?P<label>.+)"
     )
+    label_whois_regex = re.compile(
+        "<@[A-Z0-9]+> who is (?P<user><@[A-Z0-9]+>)"
+    )
 
     def __init__(self):
         self.aws_client = AwsClient()
+        self.slack_client = SlackClient()
 
     def respond(self, event: json):
-        message = event["text"]
+        message = html.unescape(event["text"])
+        channel = event["channel"]
         timestamp = decimal.Decimal(event["event_ts"])
 
-        if self.label_regex.fullmatch(message):
+        if self.label_regex.match(message):
             self.handle_label_message(message, timestamp)
+        elif self.label_whois_regex.match(message):
+            self.handle_label_whois_message(message, channel, timestamp)
         else:
-            pass
+            print(f"Unhandled message {message}")
+
+    def handle_label_whois_message(self, message: str, channel: str, timestamp: decimal):
+        match = self.label_whois_regex.match(message)
+        user = match.group("user")
+        labels = [item["label"] for item in self.aws_client.get_labels_for_user(user)]
+        text = f"{user} is {', '.join(labels)}"
+        self.slack_client.reply_in_thread(text, channel, timestamp)
 
     def handle_label_message(self, message: str, timestamp: decimal):
-        match = self.label_regex.fullmatch(message)
+        match = self.label_regex.match(message)
 
         user = match.group("user")
         verb = match.group("verb")

@@ -42,3 +42,10 @@ class AwsClient:
         )["Items"]
         print(f"retrieved labels for {user}: {items}")
         return items
+
+    def get_secret(self, secret_name):
+        session = boto3.session.Session()
+        client = session.client(service_name="secretsmanager", region_name=self.AWS_REGION)
+        get_secret_value_response = client.get_secret_value(SecretId=secret_name)
+
+        return get_secret_value_response['SecretString']
