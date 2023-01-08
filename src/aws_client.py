@@ -36,7 +36,7 @@ class AwsClient:
         else:
             print(f"no label to delete: user={user}, label={label}")
 
-    def get_labels_for_user(self, user: str) -> list[map]:
+    def get_labels_for_user(self, user: str) -> list[dict]:
         items = self.table.query(
             KeyConditionExpression=Key("user").eq(user)
         )["Items"]

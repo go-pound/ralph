@@ -25,11 +25,12 @@ class AppMentionHandler:
         timestamp = decimal.Decimal(event["event_ts"])
 
         if self.label_regex.match(message):
-            self.handle_label_message(message, timestamp)
+            self.handle_label_message(message, channel, timestamp)
         elif self.label_whois_regex.match(message):
             self.handle_label_whois_message(message, channel, timestamp)
         else:
             print(f"Unhandled message {message}")
+            self.slack_client.add_reaction("question", channel, timestamp)
 
     def handle_label_whois_message(self, message: str, channel: str, timestamp: decimal):
         match = self.label_whois_regex.match(message)
@@ -38,7 +39,7 @@ class AppMentionHandler:
         text = f"{user} is {', '.join(labels)}"
         self.slack_client.reply_in_thread(text, channel, timestamp)
 
-    def handle_label_message(self, message: str, timestamp: decimal):
+    def handle_label_message(self, message: str, channel: str, timestamp: decimal):
         match = self.label_regex.match(message)
 
         user = match.group("user")
@@ -51,3 +52,4 @@ class AppMentionHandler:
             self.aws_client.put_label(user, timestamp, label)
         else:
             self.aws_client.delete_label(user, label)
+        self.slack_client.add_reaction("white_check_mark", channel, timestamp)
