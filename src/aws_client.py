@@ -86,3 +86,16 @@ class AwsClient:
         )
 
         return result["Attributes"]["karma"]
+
+    def list_all_karma(self) -> list[tuple[str, int]]:
+        result = self.table.query(
+            KeyConditionExpression="#T = :k",
+            ExpressionAttributeNames={
+                "#T": "type"
+            },
+            ExpressionAttributeValues={
+                ":k": "karma"
+            }
+        )["Items"]
+
+        return sorted([(item["target"], item["karma"]) for item in result], key=lambda i: i[1])
