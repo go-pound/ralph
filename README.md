@@ -23,6 +23,28 @@ grammatical reasons.
 This message type removes a label from a user. If the contents of the message following "is not" exactly matches a label
 for the user, that label is forgotten. The "is not" may be substituted with `>>` if desired for grammatical reasons. 
 
+### Karma
+Ralph can track numerical scores of arbitrary strings
+
+#### Adding/Removing Karma
+> @ralph woody++
+> > woody leveled up! (total: 10)
+
+> @ralph tinny--
+> > tinny took a hit! (total: -5)
+
+This message type increments or decrements a karma count. Karma can be tracked for any string which does not contain
+whitespace.
+
+#### Leaderboard
+> @ralph karma best
+> > Best all time: <br> 1. @ralph (12) <br> 2. woody(10) <br> [...]
+
+> @ralph karma worst
+> > Worst all time: <br> 1. @tana (-10) <br> 2. tinny(-5) <br> [...]
+
+This message type lists the top or bottom 10 karma scores.
+
 #### Listing Labels
 > @ralph who is @michael
 > > @michael is up to something, testing on prod, regretting everything, [...]
