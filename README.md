@@ -56,7 +56,7 @@ Ralph is designed to be hosted on AWS as a Lambda with supporting DynamoDB table
 
 ### Lambda
 All files in the `src/` directory are meant to be used as a Lambda function with the handler found in 
-`index.lambda_handler`. The following environment variables are required:
+`lambda_function.lambda_handler`. The following environment variables are required:
 
 | Name                | Description                                              | Example         |
 |---------------------|----------------------------------------------------------|-----------------|
