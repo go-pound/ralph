@@ -1,6 +1,7 @@
 import html
 import json
 import logging
+import random
 import re
 import decimal
 
@@ -8,7 +9,25 @@ from aws_client import AwsClient
 from slack_client import SlackClient
 
 
+def generate_karma_response(target: str, change: int, new_total: int) -> str:
+    positive_messages = [
+        "is on the rise!",
+        "leveled up!",
+        ":chart_with_upwards_trend:"
+    ]
+    negative_messages = [
+        "took a hit!",
+        ":chart_with_downwards_trend:"
+    ]
+
+    description = random.choice(positive_messages if change > 0 else negative_messages)
+    return f"{target} {description} (total: {new_total})"
+
+
 class AppMentionHandler:
+    karma_regex = re.compile(
+        r"<@[A-Z0-9]+> (?P<target>\S+)(?P<sign>(?:\+\+|--))"
+    )
     label_regex = re.compile(
         "<@[A-Z0-9]+> (?P<user><@[A-Z0-9]+>) (?P<verb>is not|is|<<|>>) (?P<label>.+)"
     )
@@ -26,7 +45,9 @@ class AppMentionHandler:
         timestamp = decimal.Decimal(event["event_ts"])
 
         try:
-            if self.label_regex.match(message):
+            if self.karma_regex.match(message):
+                self.handle_karma_message(message, channel, timestamp)
+            elif self.label_regex.match(message):
                 self.handle_label_message(message, channel, timestamp)
             elif self.label_whois_regex.match(message):
                 self.handle_label_whois_message(message, channel, timestamp)
@@ -36,6 +57,17 @@ class AppMentionHandler:
         except Exception as e:
             self.slack_client.add_reaction("x", channel, timestamp)
             raise e
+
+    def handle_karma_message(self, message: str, channel: str, timestamp: decimal):
+        match = self.karma_regex.match(message)
+
+        target = match.group("target")
+        change = 1 if match.group("sign") == "++" else -1
+
+        new_total = self.aws_client.increment_karma(target, change)
+        message = generate_karma_response(target, change, new_total)
+
+        self.slack_client.reply_in_thread(message, channel, timestamp)
 
     def handle_label_whois_message(self, message: str, channel: str, timestamp: decimal):
         match = self.label_whois_regex.match(message)

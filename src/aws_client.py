@@ -71,3 +71,18 @@ class AwsClient:
         else:
             logging.info(f"no labels for {user}")
             return []
+
+    def increment_karma(self, target: str, change: int) -> int:
+        result = self.table.update_item(
+            Key={
+                "type": "karma",
+                "target": target
+            },
+            UpdateExpression="ADD karma :val",
+            ExpressionAttributeValues={
+                ":val": change
+            },
+            ReturnValues="UPDATED_NEW"
+        )
+
+        return result["Attributes"]["karma"]
