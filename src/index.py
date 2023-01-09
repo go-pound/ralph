@@ -1,10 +1,12 @@
 import json
 import logging
+import os
 
 from app_mention_handler import AppMentionHandler
 
 
 def lambda_handler(event: json, context: json):
+    init_logger()
     logging.info(f"Received event: {event} with context {context}")
 
     body = json.loads(event['body']).get('event')
@@ -16,6 +18,11 @@ def lambda_handler(event: json, context: json):
         return AppMentionHandler().respond(body)
     else:
         return {"statusCode": 400, "body": f"Unsupported event type {event_type}"}
+
+
+def init_logger():
+    log_level = os.getenv("LOG_LEVEL", logging.WARN)
+    logging.getLogger().setLevel(log_level)
 
 
 def url_verification(body):

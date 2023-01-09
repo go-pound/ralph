@@ -1,16 +1,17 @@
 import decimal
 import logging
+import os
 
 import boto3
 from botocore.exceptions import ClientError
 
 
 class AwsClient:
-    AWS_REGION = "us-east-1"
-    DYNAMO_TABLE_NAME = "ralph"
 
     def __init__(self):
-        self.table = boto3.resource("dynamodb", region_name=self.AWS_REGION).Table(self.DYNAMO_TABLE_NAME)
+        self.region = os.getenv("REGION")
+        self.table_name = os.getenv("DYNAMO_TABLE_NAME")
+        self.table = boto3.resource("dynamodb", region_name=self.region).Table(self.table_name)
 
     def put_label(self, user: str, timestamp: decimal, label: str) -> bool:
         logging.info(f"adding label: user={user} label={label} timestamp={timestamp}")
@@ -70,10 +71,3 @@ class AwsClient:
         else:
             logging.info(f"no labels for {user}")
             return []
-
-    def get_secret(self, secret_name: str) -> str:
-        session = boto3.session.Session()
-        client = session.client(service_name="secretsmanager", region_name=self.AWS_REGION)
-        get_secret_value_response = client.get_secret_value(SecretId=secret_name)
-
-        return get_secret_value_response["SecretString"]
