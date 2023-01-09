@@ -74,7 +74,7 @@ Ralph uses one DynamoDB table with the following schema:
 | **Sort Key**      | target | String | e.g. the user ID relevant to the item    |
 
 ### Slack
-Ralph's Slack app requires the following scopes:
+An app manifest file is provided to help configure the Slack app. Ralph requires the following scopes:
 
 | Scope               | Reason                                               |
 |---------------------|------------------------------------------------------|
