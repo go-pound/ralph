@@ -23,6 +23,12 @@ grammatical reasons.
 This message type removes a label from a user. If the contents of the message following "is not" exactly matches a label
 for the user, that label is forgotten. The "is not" may be substituted with `>>` if desired for grammatical reasons. 
 
+#### Listing Labels
+> @ralph who is @michael
+> > @michael is up to something, testing on prod, regretting everything, [...]
+
+This message type lists all labels for a user as a comma-separated list, ordered from oldest to newest.
+
 ### Karma
 Ralph can track numerical scores of arbitrary strings
 
@@ -44,12 +50,6 @@ whitespace.
 > > Worst all time: <br> 1. @tana (-10) <br> 2. tinny(-5) <br> [...]
 
 This message type lists the top or bottom 10 karma scores.
-
-#### Listing Labels
-> @ralph who is @michael
-> > @michael is up to something, testing on prod, regretting everything, [...]
-
-This message type lists all labels for a user as a comma-separated list, ordered from oldest to newest.
 
 ## Setup
 Ralph is designed to be hosted on AWS as a Lambda with supporting DynamoDB table.
@@ -81,6 +81,8 @@ An app manifest file is provided to help configure the Slack app. Ralph requires
 | `app_mentions:read` | Listen to messages containing at-mentions of the app |
 | `chat:write`        | Send messages                                        |
 | `reactions_write`   | Add emoji reactions to messages                      |
+
+Ralph also requires a subscription to the `app_mention` event to be able to receive notification of messages at-mentioning it.
 
 ## Contributing
 
