@@ -6,19 +6,21 @@ from app_mention_handler import AppMentionHandler
 
 
 def lambda_handler(event: json, context: json):
-    log_level = os.getenv("LOG_LEVEL", logging.WARN)
+    log_level = os.getenv("LOG_LEVEL", "WARN")
     logging.getLogger().setLevel(log_level)
 
-    logging.info(f"Received event: {event} with context {context}")
+    logging.info("Received event: %s with context %s", event, context)
 
     body = json.loads(event['body'])
     event = body.get('event')
-    event_type = event["type"] if event else body["type"]  # url_verification events have a different structure
+    # url_verification events have a different structure
+    event_type = event["type"] if event else body["type"]
 
     if event_type == "url_verification":
-        logging.info(f"Responding to challenge: {body}")
+        logging.info("Responding to challenge: %s", body)
         return body["challenge"]
-    elif event_type == "app_mention":
+
+    if event_type == "app_mention":
         return AppMentionHandler().respond(event)
-    else:
-        return {"statusCode": 400, "body": f"Unsupported event type {event_type}"}
+
+    return {"statusCode": 400, "body": f"Unsupported event type {event_type}"}

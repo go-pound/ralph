@@ -64,11 +64,11 @@ class AppMentionHandler:
             elif self.label_whois_regex.match(message):
                 self.handle_label_whois_message(message, channel, timestamp)
             else:
-                logging.info(f"Unhandled message {message}")
+                logging.info("Unhandled message %s", message)
                 self.slack_client.add_reaction("question", channel, timestamp)
-        except Exception as e:
+        except Exception as error:
             self.slack_client.add_reaction("x", channel, timestamp)
-            raise e
+            raise error
 
     def handle_karma_leaderboard_message(self, message: str, channel: str, timestamp: decimal):
         match = self.karma_leaderboard_regex.match(message)
@@ -106,13 +106,11 @@ class AppMentionHandler:
         verb = match.group("verb")
         label = match.group("label")
 
-        logging.info(f"handling label message: user={user}, verb={verb}, label={label}")
+        logging.info("handling label message: user=%s, verb=%s, label=%s", user, verb, label)
 
-        if verb == "is" or verb == "<<":
-            self.aws_client.put_label(user, timestamp, label) or \
-                self.slack_client.reply_in_thread("I know", channel, timestamp)
-        else:
-            self.aws_client.delete_label(user, label) or \
-                self.slack_client.reply_in_thread("I know", channel, timestamp)
+        if verb in ("is", "<<") and not self.aws_client.put_label(user, timestamp, label):
+            self.slack_client.reply_in_thread("I know", channel, timestamp)
+        elif not self.aws_client.delete_label(user, label):
+            self.slack_client.reply_in_thread("I know", channel, timestamp)
 
         self.slack_client.add_reaction("white_check_mark", channel, timestamp)

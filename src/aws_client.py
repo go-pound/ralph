@@ -14,14 +14,15 @@ class AwsClient:
         self.table = boto3.resource("dynamodb", region_name=self.region).Table(self.table_name)
 
     def put_label(self, user: str, timestamp: decimal, label: str) -> bool:
-        logging.info(f"adding label: user={user} label={label} timestamp={timestamp}")
+        logging.info("adding label: user=%s label=%s timestamp=%s", user, label, timestamp)
         try:
             self.table.update_item(
                 Key={
                     "type": "label",
                     "target": user
                 },
-                UpdateExpression="SET labels = list_append(if_not_exists(labels, :empty), :label_list)",
+                UpdateExpression="SET labels = "
+                                 "list_append(if_not_exists(labels, :empty), :label_list)",
                 ConditionExpression="NOT contains(labels, :label)",
                 ExpressionAttributeValues={
                     ":empty": [],
@@ -30,19 +31,18 @@ class AwsClient:
                 }
             )
             return True
-        except ClientError as e:
-            if e.response['Error']['Code'] == 'ConditionalCheckFailedException':
+        except ClientError as error:
+            if error.response['Error']['Code'] == 'ConditionalCheckFailedException':
                 logging.info("label already exists")
                 return False
-            else:
-                raise e
+            raise error
 
     def delete_label(self, user: str, label: str) -> bool:
         labels_for_user = self.get_labels_for_user(user)
         index = labels_for_user.index(label) if label in labels_for_user else None
 
         if index is not None:
-            logging.info(f"deleting label: user={user}, label={label}, index={index}")
+            logging.info("deleting label: user=%s, label=%s, index=%s", user, label, index)
             query = f"REMOVE labels[{index}]"
             self.table.update_item(
                 Key={
@@ -52,9 +52,9 @@ class AwsClient:
                 UpdateExpression=query
             )
             return True
-        else:
-            logging.info(f"no label to delete: user={user}, label={label}")
-            return False
+
+        logging.info("no label to delete: user=%s, label=%s", user, label)
+        return False
 
     def get_labels_for_user(self, user: str) -> list[str]:
         result = self.table.get_item(
@@ -66,11 +66,11 @@ class AwsClient:
 
         if result.get("Item"):
             labels = result["Item"]["labels"]
-            logging.info(f"retrieved labels for {user}: {labels}")
+            logging.info("retrieved labels for %s: %s", user, labels)
             return labels
-        else:
-            logging.info(f"no labels for {user}")
-            return []
+
+        logging.info("no labels for %s", user)
+        return []
 
     def increment_karma(self, target: str, change: int) -> int:
         result = self.table.update_item(

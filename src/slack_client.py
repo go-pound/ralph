@@ -16,10 +16,10 @@ def headers():
 
 def post(url: str, payload: dict):
     body = urllib.parse.urlencode(payload).encode("utf-8")
-    logging.info(f"Sending request to {url}: {payload}")
+    logging.info("Sending request to %s: %s", url, payload)
     request = urllib.request.Request(url, headers=headers(), data=body)
-    response = urllib.request.urlopen(request).read()
-    logging.info(f"Received response: {response}")
+    with urllib.request.urlopen(request) as response:
+        logging.info("Received response: %s", response)
 
 
 class SlackClient:
