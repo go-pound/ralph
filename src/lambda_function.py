@@ -1,3 +1,6 @@
+"""
+Entry point for AWS Lambda
+"""
 import json
 import logging
 import os
@@ -6,6 +9,7 @@ from app_mention_handler import AppMentionHandler
 
 
 def lambda_handler(event: json, context: json):
+    """Process an event triggering the lambda."""
     log_level = os.getenv("LOG_LEVEL", "WARN")
     logging.getLogger().setLevel(log_level)
 
