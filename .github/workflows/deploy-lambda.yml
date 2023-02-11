@@ -1,0 +1,25 @@
+name: deploy-py-lambda
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@master
+    - name: Deploy code to Lambda
+      uses: mariamrf/py-lambda-action@v1.0.1
+      with:
+        lambda_layer_arn: 'arn:aws:lambda:us-east-1:196072577018:function:ralph'
+        lambda_function_name: 'lambda_function.lambda_handler'
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_DEFAULT_REGION: ${{ env.REGION }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        DYNAMO_TABLE_NAME: ${{ env.DYNAMO_TABLE_NAME }}
+        LOG_LEVEL: ${{ env.LOG_LEVEL }}
+        REGION: ${{ env.REGION }}
+        SLACK_API_TOKEN: ${{ secrets.SLACK_API_TOKEN }}
