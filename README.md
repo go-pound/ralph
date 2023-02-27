@@ -51,6 +51,14 @@ whitespace.
 
 This message type lists the top or bottom 10 karma scores.
 
+### Other Miscellaneous Nonsense
+
+#### French Toast Alerts
+> @ralph french toast
+> > The UniversalHub French Toast alert level is: 3 Slices / Elevated
+
+This message type fetches the current French Toast Alert level from UniversalHub's API.
+
 ## Setup
 Ralph is designed to be hosted on AWS as a Lambda with supporting DynamoDB table.
 
