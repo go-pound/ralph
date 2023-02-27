@@ -6,9 +6,9 @@ import json
 import logging
 import random
 import re
-import requests
 import decimal
 import xml.etree.ElementTree as et
+import requests
 
 from aws_client import AwsClient
 from slack_client import SlackClient
@@ -87,7 +87,7 @@ class AppMentionHandler:
 
     def handle_french_toast_alert(self, message: str, channel: str, timestamp: decimal):
         """Respond when asked for the current French Toast Alert level."""
-        req = requests.get('https://universalhub.com/toast.xml')
+        req = requests.get('https://universalhub.com/toast.xml', timeout=10)
         root = et.fromstring(req.text)
         alert_level = root.find('status').text
         message = f"The UniversalHub French Toast alert level is: {alert_level}"
