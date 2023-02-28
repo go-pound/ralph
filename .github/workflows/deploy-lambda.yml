@@ -11,10 +11,11 @@ jobs:
     steps:
     - uses: actions/checkout@master
     - name: Deploy code to Lambda
-      uses: mariamrf/py-lambda-action@v1.0.1
+      uses: qubitro/action-lambda-python-zip@v1.0
       with:
         lambda_layer_arn: 'arn:aws:lambda:us-east-1:196072577018:layer:ralph_dependencies'
         lambda_function_name: 'arn:aws:lambda:us-east-1:196072577018:function:ralph'
+        lambda_region: ${{ vars.REGION }}
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_DEFAULT_REGION: ${{ vars.REGION }}
