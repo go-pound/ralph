@@ -1,2 +1,3 @@
 boto3==1.26.68
 pylint==2.16.1
+requests==2.27.1
