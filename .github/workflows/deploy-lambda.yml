@@ -5,26 +5,6 @@ on:
       - main
   workflow_dispatch:
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    environment: prod
-    steps:
-    - uses: actions/checkout@master
-    - name: Deploy code to Lambda
-      uses: qubitro/action-lambda-python-zip@v1.0
-      with:
-        lambda_layer_arn: 'arn:aws:lambda:us-east-1:196072577018:layer:ralph_dependencies'
-        lambda_function_name: 'arn:aws:lambda:us-east-1:196072577018:function:ralph'
-        lambda_region: ${{ vars.REGION }}
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_DEFAULT_REGION: ${{ vars.REGION }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        DYNAMO_TABLE_NAME: ${{ vars.DYNAMO_TABLE_NAME }}
-        LOG_LEVEL: ${{ vars.LOG_LEVEL }}
-        REGION: ${{ vars.REGION }}
-        SLACK_API_TOKEN: ${{ secrets.SLACK_API_TOKEN }}
-jobs:
   build-deploy:
     runs-on: ubuntu-latest
     steps:
@@ -36,9 +16,15 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ vars.REGION }}
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_DEFAULT_REGION: ${{ vars.REGION }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          DYNAMO_TABLE_NAME: ${{ vars.DYNAMO_TABLE_NAME }}
+          LOG_LEVEL: ${{ vars.LOG_LEVEL }}
+          REGION: ${{ vars.REGION }}
+          SLACK_API_TOKEN: ${{ secrets.SLACK_API_TOKEN }}
       # sam build
       - run: sam build --use-container
-
-
-# sam deploy
+      # sam deploy
       - run: sam deploy --no-confirm-changeset --no-fail-on-empty-changeset --stack-name sam-hello-world --s3-bucket ralph-deploy --capabilities CAPABILITY_IAM --region ${{ vars.REGION }}
