@@ -7,6 +7,8 @@ import logging
 import random
 import re
 import decimal
+import xml.etree.ElementTree as et
+import requests
 
 from aws_client import AwsClient
 from slack_client import SlackClient
@@ -38,6 +40,10 @@ def generate_leaderboard_response(leaderboard_type: str, karma: list[tuple[str, 
 
 class AppMentionHandler:
     """Process incoming Slack messages."""
+    french_toast_regex = re.compile(
+        "<@[A-Z0-9]+> french\\s?toast",
+        re.IGNORECASE
+    )
     karma_leaderboard_regex = re.compile(
         "<@[A-Z0-9]+> karma (?P<type>best|worst)"
     )
@@ -62,7 +68,9 @@ class AppMentionHandler:
         timestamp = decimal.Decimal(event["event_ts"])
 
         try:
-            if self.karma_leaderboard_regex.match(message):
+            if self.french_toast_regex.match(message):
+                self.handle_french_toast_alert(message, channel, timestamp)
+            elif self.karma_leaderboard_regex.match(message):
                 self.handle_karma_leaderboard_message(message, channel, timestamp)
             elif self.karma_regex.match(message):
                 self.handle_karma_message(message, channel, timestamp)
@@ -76,6 +84,14 @@ class AppMentionHandler:
         except Exception as error:
             self.slack_client.add_reaction("x", channel, timestamp)
             raise error
+
+    def handle_french_toast_alert(self, message: str, channel: str, timestamp: decimal):
+        """Respond when asked for the current French Toast Alert level."""
+        req = requests.get('https://universalhub.com/toast.xml', timeout=10)
+        root = et.fromstring(req.text)
+        alert_level = root.find('status').text
+        message = f"The UniversalHub French Toast alert level is: {alert_level}"
+        self.slack_client.reply_in_thread(message, channel, timestamp)
 
     def handle_karma_leaderboard_message(self, message: str, channel: str, timestamp: decimal):
         """Respond when asked for the top or bottom karma scores."""
