@@ -137,7 +137,7 @@ class AppMentionHandler:
 
         if verb in ("is", "<<") and not self.aws_client.put_label(user, timestamp, label):
             self.slack_client.reply_in_thread("I know", channel, timestamp)
-        elif not self.aws_client.delete_label(user, label):
+        elif verb in ("is not", ">>") and not self.aws_client.delete_label(user, label):
             self.slack_client.reply_in_thread("I know", channel, timestamp)
 
         self.slack_client.add_reaction("white_check_mark", channel, timestamp)
